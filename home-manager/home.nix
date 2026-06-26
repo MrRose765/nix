@@ -15,7 +15,6 @@
     # session variables
     home.sessionVariables = {
         EDITOR="nvim";
-        # ALSA_PLUGIN_DIR = "/usr/lib/x86_64-linux-gnu/alsa-lib"; # TODO: Use this when zsh enabled
     };
 
     programs.git = {

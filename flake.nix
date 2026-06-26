@@ -13,12 +13,22 @@
       url = "github:nix-community/nix4nvchad";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    zen-browser = {
+      url = "github:youwen5/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, ...} @ inputs:
     let
         system = "x86_64-linux";
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
+                "obsidian"
+            ];
+        };
     in {
         homeConfigurations."odoo" = home-manager.lib.homeManagerConfiguration {
             inherit pkgs;
