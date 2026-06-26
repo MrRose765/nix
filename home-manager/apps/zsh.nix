@@ -1,0 +1,134 @@
+{ inputs, pkgs, config, ... }:
+let
+  # fzf-tab's pre-built .so module causes a glibc ABI mismatch on non-NixOS Ubuntu.
+  # Removing the modules dir forces fzf-tab into its pure-zsh fallback mode.
+  fzf-tab-no-module = pkgs.runCommand "fzf-tab-no-module" {} ''
+    cp -r --no-preserve=mode ${pkgs.zsh-fzf-tab}/share/fzf-tab $out
+    rm -rf $out/modules
+  '';
+in
+{
+    programs.fzf.enableZshIntegration = true;
+
+    programs.zsh = {
+        enable = true;
+        enableCompletion = true;
+        shellAliases = {
+            clears="clear && source ~/.zshrc";
+            ssha-odoo="ssh-add ~/.ssh/id_odoo_25519";
+            claude="firejail --profile=~/.config/firejail/claude.profile --whitelist=$PWD claude";
+            codefire="firejail code ~/src/workspaces/claude-upgrade.code-workspace --profile=~/.config/firejail/code.profile";
+
+            # terminal utils
+            ssh="kitten ssh";
+            bat="batcat";
+            cat="batcat";
+            ls="eza --icons --git";
+            ll="eza -l --icons --git --group-directories-first";
+            la="eza -la --icons --git --group-directories-first";
+
+            # nix utils
+            nix-switch="nix run nixpkgs#home-manager -- switch --flake ~/nix/#odoo";                      
+            nix-update="nix flake update --flake ~/nix && nix-switch";
+            nix-gc="home-manager expire-generations '-30 days' && nix store gc";
+
+            # Odoo upgrade utils
+            mydbs="psql odoo -c 'SELECT datname as mydbs FROM pg_database'";
+            clbranches="git fetch && git branch -vv | grep ': gone]' | awk '{print \$1}' | xargs git branch -D";
+            mybranches="git branch -vv | grep 'cymo'" ;
+            graph="uv run ~/src/upgrade/tools/graph.py";
+            inject-trigger="uv run ~/src/upgrade/tools/inject-trigger --with psycopg2";
+            pg="pgcli \${CURRENT_DB}";
+
+        };
+
+        initContent = ''
+            # p10k theme
+            [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+            # Select a psql db for other functions
+            # Usage: use <db_name>
+            use() {
+                local selected_db=$1
+
+                # 1. If no argument provided, use fzf to select one interactively!
+                if [[ -z "$selected_db" ]]; then
+                    selected_db=$(psql postgres -tAc "SELECT datname FROM pg_database" 2>/dev/null | fzf --prompt="Select DB > " --height=40% --layout=reverse)
+                    # If user presses Esc in fzf, exit gracefully
+                    [[ -z "$selected_db" ]] && return 0
+                fi
+
+                # 2. Validate that the database actually exists
+                local db_exists=$(psql postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$selected_db';" 2>/dev/null)
+
+                if [[ "$db_exists" == "1" ]]; then
+                    export CURRENT_DB=$selected_db
+                    echo "CURRENT_DB set to: $CURRENT_DB"
+                else
+                    echo "Error: Database '$selected_db' does not exist."
+                fi
+            }
+            # Add Zsh Tab-completion for the 'use' command
+            _use_autocomplete() {
+                local dbs
+                # Fetch list of databases for the autocomplete menu
+                dbs=($(psql postgres -tAc "SELECT datname FROM pg_database;" 2>/dev/null))
+                compadd -a dbs
+            }
+            compdef _use_autocomplete use
+
+            # Either runs or suspend the vagrant vms
+            # usage: vm-local [up|suspend
+            vm-local() {
+                local cmd_arg=""
+                case "$1" in
+                    up) cmd_arg="up" ;;
+                    suspend) cmd_arg="suspend" ;;
+                    *) echo "Usage: vm-local [up|suspend]"; return 1 ;;
+                esac
+                
+                pushd ~/src/upgrade-platform/vm-setup || return
+                echo " ===== $cmd_arg master node (192.168.56.10) ===== "
+                VM_NAME=localvm VM_IP=192.168.56.10 vagrant $cmd_arg
+                echo " ===== $cmd_arg worker node (192.168.56.11) ===== "
+                VM_NAME=localvm2 VM_IP=192.168.56.11 vagrant $cmd_arg
+                popd
+            }
+        '';
+
+        oh-my-zsh = {
+            enable = true;
+            plugins = [
+                "git"
+                "sudo"
+                "zsh-interactive-cd"
+            ];
+        };
+
+        plugins = with pkgs; [
+            {
+                name = "powerlevel10k";
+                src = zsh-powerlevel10k;
+                file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
+            }
+            {
+                name = "fzf-tab";
+                src = fzf-tab-no-module;
+                file = "fzf-tab.plugin.zsh";
+            }
+            {
+                name = "syntax-highlighting";
+                src = zsh-syntax-highlighting;
+                file = "share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh";
+            }
+            {
+                name = "autosuggestions";
+                src = zsh-autosuggestions;
+                file = "share/zsh-autosuggestions/zsh-autosuggestions.zsh";
+            }
+          ];
+
+    };
+
+    home.file.".p10k.zsh".source = ../resources/p10k.zsh;
+}
