@@ -4,26 +4,32 @@ let
   zen-browser = inputs.zen-browser.packages.${pkgs.system}.default;
 in {
   home.packages = with pkgs; [
+    ### General
+    flameshot
+
     ### Fonts
     jetbrains-mono
-    
+
     ### Terminal-based
     fastfetch
     btop
     ncspot
-    eza                                                                                                                                                                                  
+    eza
 
     ### Development
     uv
+    ripgrep
+    pgcli
 
     ### Apps
-    signal-desktop
     calibre
-    (obsidian.override { commandLineArgs = "--no-sandbox"; }) # Sandbox needs extra permissions, disable it for now
+    signal-desktop
+    obsidian
     # zen-browser
-    # discord
+    discord
+    ferdium
     # super-productivity
-    # ferdium
+
   ];
 
   xdg.configFile."ncspot/config.toml".text = ''
