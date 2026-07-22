@@ -28,6 +28,8 @@
             config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
                 "obsidian"
                 "discord"
+                "steam"
+                "steam-unwrapped"
             ];
         };
     in {

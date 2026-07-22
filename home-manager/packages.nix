@@ -5,7 +5,8 @@ let
 in {
   home.packages = with pkgs; [
     ### General
-    flameshot
+    #flameshot
+    xdg-utils
 
     ### Fonts
     jetbrains-mono
@@ -26,10 +27,12 @@ in {
     signal-desktop
     obsidian
     # zen-browser
-    discord
-    ferdium
+    # discord
+    # ferdium
     # super-productivity
 
+    ### Personal
+    # steam
   ];
 
   xdg.configFile."ncspot/config.toml".text = ''
