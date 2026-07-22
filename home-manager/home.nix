@@ -5,6 +5,7 @@
         ./apps/nvchad.nix
         ./apps/kitty.nix
         ./apps/zsh.nix
+        ./apps/newsboat.nix
         ./packages.nix
     ];
 
