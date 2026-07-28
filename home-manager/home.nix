@@ -6,6 +6,7 @@
         ./apps/kitty.nix
         ./apps/zsh.nix
         ./apps/newsboat.nix
+        ./apps/languagetool.nix
         ./packages.nix
     ];
 

@@ -7,8 +7,6 @@ in {
     ### General
     #flameshot
     xdg-utils
-    languagetool
-    fasttext
 
     ### Fonts
     jetbrains-mono
