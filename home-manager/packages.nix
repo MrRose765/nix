@@ -7,6 +7,8 @@ in {
     ### General
     #flameshot
     xdg-utils
+    languagetool
+    fasttext
 
     ### Fonts
     jetbrains-mono
@@ -23,6 +25,7 @@ in {
     pgcli
 
     ### Apps
+    protonmail-desktop
     calibre
     signal-desktop
     obsidian
