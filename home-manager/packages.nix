@@ -21,6 +21,8 @@ in {
     uv
     ripgrep
     pgcli
+    gh
+    jq
 
     ### Apps
     protonmail-desktop
@@ -39,4 +41,9 @@ in {
   xdg.configFile."ncspot/config.toml".text = ''
     backend = "pulseaudio"
   '';
+
+  home.file.".local/bin/odoo-pr-sync" = {
+    source = ./scripts/odoo-pr-sync.sh;
+    executable = true;
+  };
 }

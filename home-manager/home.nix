@@ -7,6 +7,7 @@
         ./apps/zsh.nix
         ./apps/newsboat.nix
         ./apps/languagetool.nix
+        ./apps/zathura.nix
         ./packages.nix
     ];
 
