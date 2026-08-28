@@ -51,16 +51,6 @@ title: "$title_yaml"
 > $title
 
 ## Summary
-> Scope, modules affected, why.
-
-## Files touched
--
-
-## Review notes
-- [ ]
-
-## Blockers / questions
--
 
 ## Comments
 -
