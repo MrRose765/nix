@@ -31,7 +31,7 @@ in
             la="eza -la --icons --git --group-directories-first";
 
             # nix utils
-            nix-switch="nix run nixpkgs#home-manager -- switch --flake ~/nix/#odoo";                      
+            nix-switch="nix run nixpkgs#home-manager -- switch --flake ~/nix/#odoo";
             nix-update="nix flake update --flake ~/nix && nix-switch";
             nix-gc="home-manager expire-generations '-30 days' && nix store gc";
 
@@ -42,6 +42,7 @@ in
             graph="uv run ~/src/upgrade/tools/graph.py";
             inject-trigger="uv run ~/src/upgrade/tools/inject-trigger --with psycopg2";
             pg="pgcli \${CURRENT_DB}";
+            hpg="harlequin -d \${CURRENT_DB}";
 
         };
 
@@ -89,7 +90,7 @@ in
                     suspend) cmd_arg="suspend" ;;
                     *) echo "Usage: vm-local [up|suspend]"; return 1 ;;
                 esac
-                
+
                 pushd ~/src/upgrade-platform/vm-setup || return
                 echo " ===== $cmd_arg master node (192.168.56.10) ===== "
                 VM_NAME=localvm VM_IP=192.168.56.10 vagrant $cmd_arg

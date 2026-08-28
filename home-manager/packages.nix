@@ -21,6 +21,7 @@ in {
     uv
     ripgrep
     pgcli
+    harlequin
     gh
     jq
 
@@ -40,6 +41,16 @@ in {
 
   xdg.configFile."ncspot/config.toml".text = ''
     backend = "pulseaudio"
+  '';
+
+  xdg.configFile."harlequin/config.toml".text = ''
+    default_profile = "psql"
+
+    [profiles.psql]
+    theme = "tokyo-night"
+    limit = 10000
+    adapter = "postgres"
+    keymap = ["vscode"]
   '';
 
   home.file.".local/bin/odoo-pr-sync" = {
