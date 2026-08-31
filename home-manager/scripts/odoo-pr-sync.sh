@@ -4,37 +4,29 @@ set -euo pipefail
 VAULT="${OBSIDIAN_VAULT:-$HOME/Documents/obsidian-vault}"
 CARDS_DIR="$VAULT/Odoo/Upgrade/PR Review/Cards"
 
-if ! command -v gh >/dev/null; then
-    echo "gh not found in PATH" >&2
-    exit 1
-fi
-if ! command -v jq >/dev/null; then
-    echo "jq not found in PATH" >&2
-    exit 1
-fi
+for cmd in gh jq; do
+    command -v "$cmd" >/dev/null || { echo "$cmd not found in PATH" >&2; exit 1; }
+done
 
 mkdir -p "$CARDS_DIR"
 
-created=0
-skipped=0
+mark_merged() {
+    local file=$1 label=${2:-}
+    local current slug
+    current=$(awk -F': *' '/^status:/{print $2; exit}' "$file")
+    [[ "$current" == "merged" ]] && return 1
+    slug=$(basename "$file" .md)
+    sed -i 's/^status: .*/status: merged/' "$file"
+    echo "merged${label:+ ($label)}: $slug"
+}
 
-while IFS= read -r pr; do
-    repo=$(echo "$pr" | jq -r '.repository.name')
-    number=$(echo "$pr" | jq -r '.number')
-    url=$(echo "$pr" | jq -r '.url')
-    title=$(echo "$pr" | jq -r '.title')
-    author=$(echo "$pr" | jq -r '.author.login')
-    opened=$(echo "$pr" | jq -r '.createdAt' | cut -d'T' -f1)
+created=0; skipped=0; merged=0; approved_merged=0
 
+# Pass 1: create cards for open PRs assigned for review
+while IFS=$'\t' read -r repo number url title author opened; do
     slug="${repo}-${number}"
     file="$CARDS_DIR/${slug}.md"
-
-    if [[ -f "$file" ]]; then
-        skipped=$((skipped + 1))
-        continue
-    fi
-
-    title_yaml=${title//\"/\\\"}
+    if [[ -f "$file" ]]; then skipped=$((skipped + 1)); continue; fi
 
     cat > "$file" <<EOF
 ---
@@ -43,7 +35,7 @@ author: $author
 repo: $repo
 opened: $opened
 status: inbox
-title: "$title_yaml"
+title: "${title//\"/\\\"}"
 ---
 
 # [$slug]($url)
@@ -55,45 +47,33 @@ title: "$title_yaml"
 ## Comments
 -
 EOF
-
     echo "created: $slug"
     created=$((created + 1))
 done < <(
-    gh search prs \
-        "user-review-requested:@me" "is:open" "is:pr" \
-        --limit 50 \
+    gh search prs "user-review-requested:@me" "is:open" "is:pr" --limit 50 \
         --json url,title,author,repository,number,createdAt \
-        | jq -c '.[]'
+        | jq -r '.[] | [.repository.name, (.number|tostring), .url, .title, .author.login, .createdAt[:10]] | @tsv'
 )
 
+# Pass 2: mark closed PRs as merged
+while IFS=$'\t' read -r repo number; do
+    file="$CARDS_DIR/${repo}-${number}.md"
+    [[ -f "$file" ]] && mark_merged "$file" && merged=$((merged + 1)) || true
+done < <(
+    gh search prs "user-review-requested:@me" "is:closed" "is:pr" --limit 50 \
+        --json repository,number \
+        | jq -r '.[] | [.repository.name, (.number|tostring)] | @tsv'
+)
 
-# --- Pass 2: mark closed PRs (merged or not) as merged ---
-  merged=0
-  while IFS= read -r pr; do
-      repo=$(echo "$pr" | jq -r '.repository.name')
-      number=$(echo "$pr" | jq -r '.number')
-      slug="${repo}-${number}"
-      file="$CARDS_DIR/${slug}.md"
-
-      [[ -f "$file" ]] || continue
-
-      current=$(awk -F': *' '/^status:/{print $2; exit}' "$file")
-      if [[ "$current" != "merged" ]]; then
-          sed -i 's/^status: .*/status: merged/' "$file"
-          echo "merged: $slug"
-          merged=$((merged + 1))
-      fi
-  done < <(
-      gh search prs \
-          "user-review-requested:@me" "is:closed" "is:pr" \
-          --limit 50 \
-          --json repository,number \
-          | jq -c '.[]'
-  )
-
+# Pass 3: check locally-approved cards against GitHub
+while IFS= read -r file; do
+    url=$(awk -F': *' '/^url:/{print $2; exit}' "$file")
+    [[ -z "$url" ]] && continue
+    state=$(gh pr view "$url" --json state -q '.state' 2>/dev/null) || continue
+    if [[ "$state" == "MERGED" || "$state" == "CLOSED" ]]; then
+        mark_merged "$file" "was approved" && approved_merged=$((approved_merged + 1)) || true
+    fi
+done < <(grep -rl '^status: approved' "$CARDS_DIR")
 
 echo
-echo "done: $created created, $skipped already existed"
-
-
-
+echo "done: $created created, $skipped skipped, $merged closed→merged, $approved_merged approved→merged"
