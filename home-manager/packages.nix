@@ -7,6 +7,7 @@ in {
     ### General
     #flameshot
     xdg-utils
+    #firejail # setuid issue :(
 
     ### Fonts
     jetbrains-mono
@@ -52,6 +53,9 @@ in {
     adapter = "postgres"
     keymap = ["vscode"]
   '';
+
+  xdg.configFile."firejail/claude.profile".source = resources/claude.profile;
+  xdg.configFile."firejail/code.profile".source = resources/code.profile;
 
   home.file.".local/bin/odoo-pr-sync" = {
     source = ./scripts/odoo-pr-sync.sh;
