@@ -108,6 +108,21 @@ whitelist ${HOME}/src/upgrade-util
 whitelist ${HOME}/src/odup
 whitelist ${HOME}/Documents/obsidian-vault
 
+noblacklist ${HOME}/nix
+whitelist ${HOME}/nix
+
 noblacklist ${HOME}/.local/bin/odup
+noblacklist ${HOME}/.local/share/uv
+whitelist ${HOME}/.local/share/uv
 whitelist ${HOME}/.nix-profile/bin/uv
 whitelist ${HOME}/.local/bin/odup
+
+# ============================================================================
+# Claude
+# ============================================================================
+noblacklist ${HOME}/Documents/obsidian-upgrade/
+whitelist ${HOME}/Documents/obsidian-upgrade/
+
+# gh CLI (GitHub) - auth token and config
+noblacklist ${HOME}/.config/gh
+whitelist ${HOME}/.config/gh
