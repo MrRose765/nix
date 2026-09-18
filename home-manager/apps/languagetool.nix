@@ -28,6 +28,7 @@ in {
     Service = {
       ExecStart = "${pkgs.languagetool}/bin/languagetool-http-server --port 8081 --config ${config.xdg.configHome}/languagetool/server.properties";
       Restart = "on-failure";
+      Environment = "_JAVA_OPTIONS=-Xms32m -Xmx768m";
     };
     Install.WantedBy = [ "default.target" ];
   };

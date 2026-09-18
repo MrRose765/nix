@@ -40,9 +40,10 @@ in
             clbranches="git fetch && git branch -vv | grep ': gone]' | awk '{print \$1}' | xargs git branch -D";
             mybranches="git branch -vv | grep 'cymo'" ;
             graph="uv run ~/src/upgrade/tools/graph.py";
-            inject-trigger="uv run ~/src/upgrade/tools/inject-trigger --with psycopg2";
+            inject-trigger="uv run --with psycopg2 ~/src/upgrade/tools/inject-trigger";
             pg="pgcli \${CURRENT_DB}";
             hpg="harlequin -d \${CURRENT_DB}";
+            lt-crashes="systemctl --user show languagetool --property=NRestarts";
 
         };
 
