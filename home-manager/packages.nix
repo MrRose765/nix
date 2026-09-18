@@ -13,6 +13,7 @@ in {
     jetbrains-mono
 
     ### Terminal-based
+    autossh
     fastfetch
     btop
     ncspot

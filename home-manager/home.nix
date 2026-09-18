@@ -34,18 +34,19 @@
         };
     };
 
-    # programs.ssh = {
-    #     enable = true;
-    #     controlMaster = "auto";
-    #     controlPath = "~/.ssh/sockets/%r@%h-%p";
-    #     controlPersist = "10m";
-    #     matchBlocks = {
-    #         "github.com" = {
-    #             hostname = "github.com";
-    #             user = "git";
-    #         };
-    #     };
-    # };
+    systemd.user.services.autossh-tunnel-upgrade-test = {
+        Unit = {
+            Description = "AutoSSH tunnel to upgrade test server";
+            After = [ "network.target" ];
+        };
+        Service = {
+            ExecStart = "${pkgs.autossh}/bin/autossh -M 0 -N -F /home/odoo/.ssh/config tunnel-upgrade-test";
+            Restart = "always";
+            RestartSec = 10;
+            Environment = "AUTOSSH_GATETIME=0";
+        };
+        Install.WantedBy = [ "default.target" ];
+    };
 
     programs.home-manager.enable = true; # let HM manage itself
 }
