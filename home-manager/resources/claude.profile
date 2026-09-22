@@ -126,3 +126,8 @@ whitelist ${HOME}/Documents/obsidian-upgrade/
 # gh CLI (GitHub) - auth token and config
 noblacklist ${HOME}/.config/gh
 whitelist ${HOME}/.config/gh
+
+noblacklist ${HOME}/Documents/skillset
+whitelist ${HOME}/Documents/skillset
+noblacklist ${HOME}/Documents/pg-llm-wiki
+whitelist ${HOME}/Documents/pg-llm-wiki

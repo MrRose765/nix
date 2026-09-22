@@ -26,6 +26,7 @@ in {
     harlequin
     gh
     jq
+    just
 
     ### Apps
     protonmail-desktop
