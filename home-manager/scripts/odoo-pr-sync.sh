@@ -20,11 +20,13 @@ mark_merged() {
     echo "merged${label:+ ($label)}: $slug"
 }
 
-created=0; skipped=0; merged=0; approved_merged=0
+created=0; skipped=0; merged=0
+declare -A seen_slugs
 
 # Pass 1: create cards for open PRs assigned for review
 while IFS=$'\t' read -r repo number url title author opened; do
     slug="${repo}-${number}"
+    seen_slugs["$slug"]=1
     file="$CARDS_DIR/${slug}.md"
     if [[ -f "$file" ]]; then skipped=$((skipped + 1)); continue; fi
 
@@ -57,23 +59,28 @@ done < <(
 
 # Pass 2: mark closed PRs as merged
 while IFS=$'\t' read -r repo number; do
-    file="$CARDS_DIR/${repo}-${number}.md"
+    slug="${repo}-${number}"
+    seen_slugs["$slug"]=1
+    file="$CARDS_DIR/${slug}.md"
     [[ -f "$file" ]] && mark_merged "$file" && merged=$((merged + 1)) || true
 done < <(
-    gh search prs "user-review-requested:@me" "is:closed" "is:pr" --limit 50 \
+    gh search prs "user-review-requested:@me" "is:closed" "is:pr" --limit 10 \
         --json repository,number \
         | jq -r '.[] | [.repository.name, (.number|tostring)] | @tsv'
 )
 
-# Pass 3: check locally-approved cards against GitHub
+# Pass 3: catch cards missed by passes 1/2 (e.g. review request was dismissed before close)
 while IFS= read -r file; do
-    url=$(awk -F': *' '/^url:/{print $2; exit}' "$file")
+    slug=$(basename "$file" .md)
+    # already handled by pass 1 or 2 — skip to avoid a redundant API call
+    [[ -n "${seen_slugs[$slug]:-}" ]] && continue
+    url=$(awk '/^url:/{sub(/^url:[[:space:]]*/, ""); print; exit}' "$file")
     [[ -z "$url" ]] && continue
     state=$(gh pr view "$url" --json state -q '.state' 2>/dev/null) || continue
     if [[ "$state" == "MERGED" || "$state" == "CLOSED" ]]; then
-        mark_merged "$file" "was approved" && approved_merged=$((approved_merged + 1)) || true
+        mark_merged "$file" && merged=$((merged + 1)) || true
     fi
-done < <(grep -rl '^status: approved' "$CARDS_DIR")
+done < <(grep -rL '^status: merged' "$CARDS_DIR")
 
 echo
-echo "done: $created created, $skipped skipped, $merged closed→merged, $approved_merged approved→merged"
+echo "done: $created created, $skipped skipped, $merged closed→merged"
