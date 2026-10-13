@@ -19,6 +19,7 @@ in
         shellAliases = {
             clears="clear && source ~/.zshrc";
             ssha-odoo="ssh-add ~/.ssh/id_odoo_25519";
+            tunnel="systemctl --user start autossh-tunnel-upgrade-test";
             claude="firejail --profile=~/.config/firejail/claude.profile --whitelist=$PWD claude";
             codefire="firejail code ~/src/workspaces/claude-upgrade.code-workspace --profile=~/.config/firejail/code.profile";
 

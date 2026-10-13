@@ -97,9 +97,6 @@ dbus-system none
 # ============================================================================
 # Customization
 # ============================================================================
-noblacklist ${HOME}/src
-noblacklist ${HOME}/Documents/obsidian-vault
-
 whitelist ${HOME}/src/odoo
 whitelist ${HOME}/src/industry
 whitelist ${HOME}/src/enterprise
@@ -108,11 +105,9 @@ whitelist ${HOME}/src/upgrade-util
 whitelist ${HOME}/src/odup
 whitelist ${HOME}/Documents/obsidian-vault
 
-noblacklist ${HOME}/nix
 whitelist ${HOME}/nix
 
 noblacklist ${HOME}/.local/bin/odup
-noblacklist ${HOME}/.local/share/uv
 whitelist ${HOME}/.local/share/uv
 whitelist ${HOME}/.nix-profile/bin/uv
 whitelist ${HOME}/.local/bin/odup
@@ -120,14 +115,10 @@ whitelist ${HOME}/.local/bin/odup
 # ============================================================================
 # Claude
 # ============================================================================
-noblacklist ${HOME}/Documents/obsidian-upgrade/
 whitelist ${HOME}/Documents/obsidian-upgrade/
 
 # gh CLI (GitHub) - auth token and config
-noblacklist ${HOME}/.config/gh
 whitelist ${HOME}/.config/gh
 
-noblacklist ${HOME}/Documents/skillset
 whitelist ${HOME}/Documents/skillset
-noblacklist ${HOME}/Documents/pg-llm-wiki
 whitelist ${HOME}/Documents/pg-llm-wiki
