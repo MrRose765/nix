@@ -42,6 +42,8 @@ in
             mybranches="git branch -vv | grep 'cymo'" ;
             graph="uv run ~/src/upgrade/tools/graph.py";
             inject-trigger="uv run --with psycopg2 ~/src/upgrade/tools/inject-trigger";
+            tb-cluster="uv run --project $HOME/src/traceback-clusterer --env-file=$HOME/src/traceback-clusterer/.env traceback-clusterer";
+
             pg="pgcli \${CURRENT_DB}";
             hpg="harlequin -d \${CURRENT_DB}";
             lt-crashes="systemctl --user show languagetool --property=NRestarts";
