@@ -40,6 +40,10 @@
                 ./home-manager/home.nix
             ];
         };
+        homeConfigurations.server = home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          modules = [ ./server/server.nix ];
+        };
     };
 }
 
